@@ -55,7 +55,7 @@ label{
 	<form action="enviado.html" name="form_01" id="form_01" class="form" method="post">
 		<h3>Formulario validado por clases</h3>
 		<label for="nombre">Nombre: </label>
-		<input type="text" name="nombre" id="nombre" class="vacio"><br>
+		<input type="text" name="nombre" id="nombre" class="required"><br>
 
 		<label for="apellido">Apellido: </label>
 		<input type="text" name="apellido" id="apellido"><br>
@@ -71,9 +71,9 @@ label{
 		<input type="submit" name="enviar" if="enviar" value="Enviar">
 
 		<ul id="validMensajes" style="display: none">
-			<li class="novacio">Este campo es requerido.</li>
-			<li class="nonumero">Este campo debe ser un numero.</li>
-			<li class="noemail">Este campo ser un email valido.</li>
+			<li class="msgVacio">Este campo es requerido.</li>
+			<li class="msgNumero">Este campo debe ser un numero.</li>
+			<li class="msgEmail">Este campo ser un email valido.</li>
 		</ul>
 
 	</form>

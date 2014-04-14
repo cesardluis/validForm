@@ -1,9 +1,3 @@
-/**
- * validar formularios
- * @param  {jQuery} $
- * @param  {window} window
- * @return {[type]}
- */
 (function($, window, undefined) {
     var formValid = function(elem, opciones) {
         this.$elem = $(elem);
@@ -12,8 +6,11 @@
     formValid.prototype = {
         defaults : {
             MensajeMostrar: true,
+            msgVacio: 'Este campo es requerido.',
+            msgNumero: 'Este campo debe ser un numero valido.',
+            msgEmail: 'Este campo ser un email valido.',
             clasesValid: {
-                vacio: '.vacio',
+                vacio: '.required',
                 email: '.email',
                 numero: '.numero'
             }
@@ -21,9 +18,6 @@
         init : function(opciones) {
             this.config = $.extend({}, this.defaults, opciones);
             this.campos = [];
-            this.vacio();
-            this.numero();
-            this.email();
 
             this.$elem.css("position", "relative");
             this.$elem.append('<div class="vError" style="display:none" />');
@@ -34,6 +28,11 @@
             $(clas.vacio + ", " + clas.email + ", " + clas.numero, this.$elem).each(function(i, item){
                 that.campos[$(item).attr('id')] = false;
             });
+
+            this.vacio();
+            this.numero();
+            this.email();
+            console.log(this.campos);
         },
 
         error: function(item, tipo){
@@ -49,7 +48,9 @@
             if(this.config.MensajeMostrar){
                 var pos = $(item).position();
                 var h = $(item).outerHeight();
-                var mensaje = $("#validMensajes ."+tipo, this.$elem).html();
+                var mensaje = ($(item).attr("error") && $(item).attr("error") != "") ? $(item).attr("error"):
+                              ($("#validMensajes ."+tipo, this.$elem).length > 0) ? $("#validMensajes ."+tipo, this.$elem).html():
+                              this.config[tipo];
                 $(".vError", this.$elem).css({
                     "display": "block",
                     "top": (pos.top + h -1)+"px",
@@ -66,10 +67,15 @@
         vacio: function (){
             var that= this,
                 clas = this.config.clasesValid;
+            $(clas.vacio, this.$elem).each(function(){
+                var text = $(this).val();
+                if($.trim(text) != "")
+                    that.campos[$(this).attr("id")] = true;
+            });
             $(clas.vacio, this.$elem).on("keypress keyup change focusout click focus", function(){
                 var text = $(this).val();
                 if($.trim(text) == "")
-                    that.error(this,"novacio");
+                    that.error(this,"msgVacio");
                 else
                     that.noError(this);
             });
@@ -77,12 +83,34 @@
         numero: function (){
             var that= this,
                 clas = this.config.clasesValid;
+
             $(clas.numero, this.$elem).on("keypress keyup change focusout click focus", function(){
                 var value = $.trim($(this).val());
                 if( ! /^([0-9])*$/.test(value) || value == "")
-                    that.error(this,"nonumero");
-                else
-                    that.noError(this);
+                    that.error(this,"msgNumero");
+                else{
+                    b = true;
+                    if ($(this).attr('max') !== undefined)
+                        if(value > $(this).attr('max')) b = false;
+                    if ($(this).attr('min') !== undefined)
+                        if(value < $(this).attr('min')) b = false;
+
+                    if(b) that.noError(this);
+                    else that.error(this,"msgNumero");
+                }
+            });
+
+             $(clas.numero, this.$elem).each(function(){
+                var value = $.trim($(this).val());
+                if(/^([0-9])*$/.test(value) && value != ""){
+                    b = true;
+                    if ($(this).attr('max') !== undefined)
+                        if(value > $(this).attr('max')) b = false;
+                    if ($(this).attr('min') !== undefined)
+                        if(value < $(this).attr('min')) b = false;
+
+                    if(b) that.campos[$(this).attr("id")] = true;
+                }
             });
         },
         email: function (){
@@ -93,7 +121,13 @@
                 if(/^([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})$/.test($.trim(text)))
                     that.noError(this);
                 else
-                    that.error(this,"noemail");
+                    that.error(this,"msgEmail");
+            });
+
+            $(clas.vacio, this.$elem).each(function(){
+                var text = $(this).val();
+                if(/^([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})$/.test($.trim(text)))
+                    that.campos[$(this).attr("id")] = true;
             });
         },
         validar: function(){
